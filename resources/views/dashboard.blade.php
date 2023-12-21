@@ -24,13 +24,26 @@
     @foreach ($noticias as $noticia)
         <div class="card w-100">
             <div class="card-body">
-                <h5 class="card-title">{{ $noticia->titulo }}</h5>
+                <a href="{{ route('noticias.show', $noticia->id) }}"><h5 class="card-title">{{ $noticia->titulo }} <span class="badge bg-secondary">({{ $noticia->numlikes }} likes)</span></h5></a>
                 <h6 class="card-subtitle mb-2 text-muted">{{ $noticia->fecha }} - {{ $noticia->categoria }}</h6>
                 <p class="card-text">{{ $noticia->descripcion }}</p>
                 <form action="{{ route('favoritas.store', $noticia->id) }}" method="POST">
                     @csrf
                     <button class="btn btn-success">Agregar a favoritas</button>
                 </form>
+                <br>
+                @if($noticia->like == '')
+                    <form action="{{ route('likes.store', $noticia->id) }}" method="POST">
+                        @csrf
+                        <button class="btn btn-primary">Like</button>
+                    </form>
+                @else
+                    <form action="{{ route('likes.destroy', $noticia->id) }}" method="POST">
+                        @csrf
+                        @method('DELETE')
+                        <button class="btn btn-warning">Dislike</button>
+                    </form>
+                @endif
             </div>
         </div>
         <br>

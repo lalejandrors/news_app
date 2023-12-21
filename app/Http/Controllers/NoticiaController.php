@@ -20,7 +20,13 @@ class NoticiaController extends Controller
             ->join('categorias', 'noticias.id_categoria', '=', 'categorias.id')
             ->join('preferencias', 'preferencias.id_categoria', '=', 'categorias.id')
             ->join('users', 'users.id', '=', 'preferencias.id_usuario')
-            ->select('noticias.*', 'categorias.nombre as categoria')
+            ->leftJoin('likes', function($q) {
+                $q->on('users.id', '=', 'likes.id_usuario')
+                   ->on('noticias.id', '=', 'likes.id_noticia');
+            }) 
+            ->leftJoin('likes as l', 'noticias.id', '=', 'l.id_noticia')
+            ->select('noticias.id', 'noticias.titulo', 'noticias.descripcion', 'noticias.fecha', 'categorias.nombre as categoria', 'likes.id as like', DB::raw('COUNT(l.id) as numlikes'))
+            ->groupBy('noticias.id', 'noticias.titulo', 'noticias.descripcion', 'noticias.fecha', 'categorias.nombre', 'likes.id')
             ->where('users.id', Auth::id())->paginate(2);
 
         return view('dashboard', compact('noticias'));
@@ -53,9 +59,26 @@ class NoticiaController extends Controller
      * @param  \App\Models\Noticia  $noticia
      * @return \Illuminate\Http\Response
      */
-    public function show(Noticia $noticia)
+    public function show($id)
     {
-        //
+        $noticia = DB::table('noticias')
+            ->join('categorias', 'noticias.id_categoria', '=', 'categorias.id')
+            ->leftJoin('likes', function($q) {
+                $q->on('noticias.id', '=', 'likes.id_noticia')
+                   ->on('likes.id_usuario', '=', DB::raw(Auth::id()));
+            }) 
+            ->leftJoin('likes as l', 'noticias.id', '=', 'l.id_noticia')
+            ->select('noticias.id', 'noticias.titulo', 'noticias.descripcion', 'noticias.fecha', 'categorias.nombre as categoria', 'likes.id as like', DB::raw('COUNT(l.id) as numlikes'))
+            ->groupBy('noticias.id', 'noticias.titulo', 'noticias.descripcion', 'noticias.fecha', 'categorias.nombre', 'likes.id')
+            ->where('noticias.id', $id)->first();
+
+        $comentarios = DB::table('comentarios')
+            ->join('users', 'users.id', '=', 'comentarios.id_usuario')
+            ->select('comentarios.*', 'users.name as usuario')
+            ->where('comentarios.id_noticia', $id)
+            ->orderByDesc('created_at')->paginate(3);
+
+        return view('noticia', compact('noticia', 'comentarios'));
     }
 
     /**

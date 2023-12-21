@@ -20,7 +20,13 @@ class FavoritoController extends Controller
             ->join('categorias', 'noticias.id_categoria', '=', 'categorias.id')
             ->join('favoritos', 'favoritos.id_noticia', '=', 'noticias.id')
             ->join('users', 'users.id', '=', 'favoritos.id_usuario')
-            ->select('noticias.*', 'categorias.nombre as categoria')
+            ->leftJoin('likes', function($q) {
+                $q->on('users.id', '=', 'likes.id_usuario')
+                   ->on('noticias.id', '=', 'likes.id_noticia');
+            }) 
+            ->leftJoin('likes as l', 'noticias.id', '=', 'l.id_noticia')
+            ->select('noticias.id', 'noticias.titulo', 'noticias.descripcion', 'noticias.fecha', 'categorias.nombre as categoria', 'likes.id as like', DB::raw('COUNT(l.id) as numlikes'))
+            ->groupBy('noticias.id', 'noticias.titulo', 'noticias.descripcion', 'noticias.fecha', 'categorias.nombre', 'likes.id')
             ->where('users.id', Auth::id())->paginate(2);
 
         return view('favoritas', compact('favoritas'));

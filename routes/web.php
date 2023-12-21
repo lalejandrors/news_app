@@ -4,6 +4,8 @@ use App\Http\Controllers\NoticiaController;
 use App\Http\Controllers\PreferenciaController;
 use App\Http\Controllers\FavoritoController;
 use App\Http\Controllers\RegistroController;
+use App\Http\Controllers\ComentariosController;
+use App\Http\Controllers\LikesController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -44,6 +46,7 @@ Route::post('/registro', [RegistroController::class, 'store'])->name('registro.s
 
 //noticias
 Route::get('/dashboard', [NoticiaController::class, 'index'])->name('noticias.index')->middleware('auth');
+Route::get('/noticia/{id}', [NoticiaController::class, 'show'])->name('noticias.show')->middleware('auth');
 //
 
 //preferencias
@@ -55,4 +58,13 @@ Route::put('/preferencias', [PreferenciaController::class, 'update'])->name('pre
 Route::get('/favoritas', [FavoritoController::class, 'index'])->name('favoritas.index')->middleware('auth');
 Route::post('/addfavoritas/{id}', [FavoritoController::class, 'store'])->name('favoritas.store')->middleware('auth');
 Route::delete('/delfavoritas/{id}', [FavoritoController::class, 'destroy'])->name('favoritas.destroy')->middleware('auth');
+//
+
+//comentarios
+Route::post('/addcomentario/{id}', [ComentariosController::class, 'store'])->name('comentarios.store')->middleware('auth');
+//
+
+//likes
+Route::post('/addlike/{id}', [LikesController::class, 'store'])->name('likes.store')->middleware('auth');
+Route::delete('/dellike/{id}', [LikesController::class, 'destroy'])->name('likes.destroy')->middleware('auth');
 //
